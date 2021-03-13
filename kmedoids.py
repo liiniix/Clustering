@@ -13,11 +13,12 @@ class KMedoids:
 	def __init__(self):
 		pass
 	
-	def read_dataset(self, data_path='iris.data'):
+	def read_dataset(self, data_path='wine.data'):
 		print('# read dataset')
+		print(data_path)
 		self.dat = pd.read_csv(data_path, header=None).sample(frac=1).reset_index(drop=True)
 		self.np_dat = self.dat.iloc[:,:-1].values
-		#print(self.np_dat)
+		print(self.np_dat)
 	
 	def mean(self, df):
 		return df.mean(axis=0)
@@ -27,8 +28,9 @@ class KMedoids:
 			return np.sum([np.sum(np.abs(m-df[i,:])) for i in range(df.shape[0])])
 		return np.sum([np.sum(np.linalg.norm(m-df[i,:])) for i in range(df.shape[0])])
 	
-	def run(self, k=3):
+	def run(self, k=2):
 		print('# run')
+		self.k = k
 		# randomly choose k objects
 		mask = np.random.randint(0, self.np_dat.shape[0], k)
 		means = copy.deepcopy(self.np_dat[mask, :])
@@ -100,10 +102,31 @@ class KMedoids:
 		print('# variance')
 		#print(self.variance)
 		return self.variance
-kmedoids = KMedoids()
+	
+	def silhoutte(self):
+		def silhoutte_for_i(m):
+			df = self.np_dat[self.dat['cluster']==m['cluster']]
+			a = np.sum(self.cost(m.values[:-2], df))/(df.shape[0]-1)
+			b = 1e8
+			for i in range(self.k):
+				if i!=m['cluster']:
+					df = self.np_dat[self.dat['cluster']==i]
+					b = min(b, np.sum(self.cost(m.values[:-2], df))/(df.shape[0]-1))
+			return (b-a)/	max(a,b)
+		return max([silhoutte_for_i(self.dat.iloc[m,:]) for m in range(self.dat.shape[0])])
+	
 
-kmedoids.read_dataset()
-kmedoids.run()
-kmedoids.precision_bcubed()
-kmedoids.recall_bcubed()
-kmedoids.get_variance()
+if __name__ == "__main__":
+	my_parser = argparse.ArgumentParser(description='')
+	my_parser.add_argument('-p', help='the path to list')
+	args = my_parser.parse_args()
+	print(vars(args)['p'])
+	
+	kmedoids = KMedoids()
+
+	kmedoids.read_dataset(data_path=vars(args)['p'])
+	kmedoids.run()
+	print("Precision bcubed:" , kmedoids.precision_bcubed())
+	print("Recall bcubed:", kmedoids.recall_bcubed())
+	print("Variance:" ,kmedoids.get_variance())
+	print("Silhoutte:", kmedoids.silhoutte())

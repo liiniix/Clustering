@@ -14,7 +14,7 @@ class KMeans:
 	def read_dataset(self, data_path='iris.data'):
 		self.dat = pd.read_csv(data_path, header=None).sample(frac=1).reset_index(drop=True)
 		self.np_dat = self.dat.iloc[:,:-1].values
-		#print(self.np_dat)
+		#print(self.dat.shape)
 	
 	def mean(self, df):
 		return df.mean(axis=0)
@@ -22,11 +22,12 @@ class KMeans:
 	def cost(self, m, df):
 		return np.sum([np.sum(np.linalg.norm(m-df[i,:])) for i in range(df.shape[0])])
 		
-	def run(self, k=3):
+	def run(self, k=2):
 		# randomly choose k objects
 		self.k = k
 		mask = np.random.randint(0, self.np_dat.shape[0], k)
 		means = copy.deepcopy(self.np_dat[mask, :])
+		print(means.shape)
 		while True:
 			#print(means)
 			cluster = [np.argmin(np.linalg.norm(means-self.np_dat[i,:], axis=1)) for i in range(self.np_dat.shape[0])]
@@ -35,6 +36,8 @@ class KMeans:
 			self.variance = curr_cost
 			#print(curr_cost)
 			new_means = self.dat.groupby('cluster').mean().values
+			if means.shape[1] == new_means.shape[1]-1:
+				new_means = new_means[:,:-1]
 			#print(np.sum(np.abs(new_means-means)))
 			if np.sum(np.abs(new_means-means))<1.e-5:
 				break
@@ -76,11 +79,17 @@ class KMeans:
 			return (b-a)/	max(a,b)
 		return max([silhoutte_for_i(self.dat.iloc[m,:]) for m in range(self.dat.shape[0])])
 			
-kmeans = KMeans()
+if __name__ == "__main__":
+	my_parser = argparse.ArgumentParser(description='')
+	my_parser.add_argument('-p', help='the path to list')
+	args = my_parser.parse_args()
+	print(vars(args)['p'])
+	
+	kmeans = KMeans()
 
-kmeans.read_dataset()
-kmeans.run()
-kmeans.recall_bcubed()
-kmeans.precision_bcubed()
-kmeans.get_variance()
-kmeans.silhoutte()
+	kmeans.read_dataset(data_path=vars(args)['p'])
+	kmeans.run()
+	print("Recall bcubed:", kmeans.recall_bcubed())
+	print("Precision bcubed:", kmeans.precision_bcubed())
+	print("Variance:" ,kmeans.get_variance())
+	print("Silhoutte:" ,kmeans.silhoutte())
