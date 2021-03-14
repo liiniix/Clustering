@@ -42,4 +42,4 @@ Elbow method is used to find out best k. I have manipulated Kmeans clustering al
 
 From elbow method, the real k is not very intuitive all the time. However elbow method can give us some hint. Kmeans takes very less time compare to Kmedoids. Kmeans has very low implementation complexity. But Kmedoids can give better result compared to Kmeans.
 
-In the four evaluation metric, there is no exclusive winner. Kmeans have done well in some cases, Kmedoids have done well in others. However the result could be different in some other real life huge/complex dataset.
+In the four evaluation metrics, there is no exclusive winner. Kmeans have done well in some cases, Kmedoids have done well in others. However the result could be different in some other real life huge/complex dataset.
